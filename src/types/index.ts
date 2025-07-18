@@ -14,6 +14,7 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isInitialized: boolean;
 }
 
 export interface StepsData {

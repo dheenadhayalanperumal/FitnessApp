@@ -7,11 +7,13 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isInitialized: boolean;
 }
 
 type AuthAction = 
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_USER'; payload: User | null }
+  | { type: 'SET_INITIALIZED'; payload: boolean }
   | { type: 'LOGOUT' };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
@@ -23,8 +25,11 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         ...state, 
         user: action.payload,
         isAuthenticated: !!action.payload,
-        isLoading: false 
+        isLoading: false,
+        isInitialized: true
       };
+    case 'SET_INITIALIZED':
+      return { ...state, isInitialized: action.payload };
     case 'LOGOUT':
       return { 
         ...state, 
@@ -41,6 +46,7 @@ const initialState: AuthState = {
   user: null,
   isLoading: true,
   isAuthenticated: false,
+  isInitialized: false,
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,10 +78,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         dispatch({ type: 'SET_USER', payload: user });
       } else {
         dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_INITIALIZED', payload: true });
       }
     } catch (error) {
       console.error('Error checking auth state:', error);
       dispatch({ type: 'SET_LOADING', payload: false });
+      dispatch({ type: 'SET_INITIALIZED', payload: true });
     }
   };
 
@@ -132,6 +140,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user: state.user,
     isLoading: state.isLoading,
     isAuthenticated: state.isAuthenticated,
+    isInitialized: state.isInitialized,
     login,
     register,
     logout,

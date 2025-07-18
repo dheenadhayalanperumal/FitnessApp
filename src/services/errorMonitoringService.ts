@@ -105,7 +105,7 @@ export class ErrorMonitoringService {
         context: context || 'Unknown',
       },
       user: this.userId ? {
-        id: this.userId,
+        id: this.userId!,
         email: this.userEmail || 'Unknown',
       } : undefined,
       device: this.getDeviceInfo(),

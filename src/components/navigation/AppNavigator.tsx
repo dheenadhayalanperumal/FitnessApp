@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
 
 // Auth Screens
@@ -32,63 +33,84 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-const MainTabs = () => (
-  <Tab.Navigator
-    screenOptions={({ route }) => ({
-      tabBarIcon: ({ focused, color, size }) => {
-        let iconName: keyof typeof Ionicons.glyphMap;
+const MainTabs = () => {
+  const insets = useSafeAreaInsets();
+  
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: keyof typeof Ionicons.glyphMap;
 
-        switch (route.name) {
-          case 'Dashboard':
-            iconName = focused ? 'home' : 'home-outline';
-            break;
-          case 'Steps':
-            iconName = focused ? 'walk' : 'walk-outline';
-            break;
-          case 'Water':
-            iconName = focused ? 'water' : 'water-outline';
-            break;
-          case 'Diet':
-            iconName = focused ? 'restaurant' : 'restaurant-outline';
-            break;
-          case 'Workout':
-            iconName = focused ? 'fitness' : 'fitness-outline';
-            break;
-          default:
-            iconName = 'ellipse';
-        }
+          switch (route.name) {
+            case 'Dashboard':
+              iconName = focused ? 'home' : 'home-outline';
+              break;
+            case 'Steps':
+              iconName = focused ? 'walk' : 'walk-outline';
+              break;
+            case 'Water':
+              iconName = focused ? 'water' : 'water-outline';
+              break;
+            case 'Diet':
+              iconName = focused ? 'restaurant' : 'restaurant-outline';
+              break;
+            case 'Workout':
+              iconName = focused ? 'fitness' : 'fitness-outline';
+              break;
+            default:
+              iconName = 'ellipse';
+          }
 
-        return <Ionicons name={iconName} size={size} color={color} />;
-      },
-      tabBarActiveTintColor: '#007AFF',
-      tabBarInactiveTintColor: 'gray',
-      tabBarStyle: {
-        paddingBottom: 5,
-        height: 60,
-      },
-      headerShown: false,
-    })}
-  >
-    <Tab.Screen name="Dashboard" component={DashboardScreen} />
-    <Tab.Screen name="Steps" component={StepsScreen} />
-    <Tab.Screen name="Water" component={WaterScreen} />
-    <Tab.Screen name="Diet" component={DietScreen} />
-    <Tab.Screen name="Workout" component={WorkoutScreen} />
-  </Tab.Navigator>
-);
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#4ECDC4',
+        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.5)',
+        tabBarStyle: {
+          paddingBottom: insets.bottom + 5,
+          height: 60 + insets.bottom,
+          paddingTop: 5,
+          backgroundColor: '#1a1a2e',
+          borderTopWidth: 0,
+          elevation: 20,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+        },
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="Steps" component={StepsScreen} />
+      <Tab.Screen name="Water" component={WaterScreen} />
+      <Tab.Screen name="Diet" component={DietScreen} />
+      <Tab.Screen name="Workout" component={WorkoutScreen} />
+    </Tab.Navigator>
+  );
+};
 
 const DrawerNavigator = () => (
   <Drawer.Navigator
     screenOptions={{
       headerStyle: {
-        backgroundColor: '#007AFF',
+        backgroundColor: '#1a1a2e',
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 0,
       },
       headerTintColor: '#fff',
       headerTitleStyle: {
         fontWeight: 'bold',
       },
-      drawerActiveTintColor: '#007AFF',
-      drawerInactiveTintColor: 'gray',
+      drawerStyle: {
+        backgroundColor: '#1a1a2e',
+      },
+      drawerActiveTintColor: '#4ECDC4',
+      drawerInactiveTintColor: 'rgba(255, 255, 255, 0.7)',
+      drawerLabelStyle: {
+        fontWeight: '500',
+      },
     }}
   >
     <Drawer.Screen 
@@ -150,9 +172,9 @@ const DrawerNavigator = () => (
 );
 
 const AppNavigator = () => {
-  const { isAuthenticated, isLoading } = useFirebaseAuth();
+  const { isAuthenticated, isLoading, isInitialized } = useFirebaseAuth();
 
-  if (isLoading) {
+  if (isLoading || !isInitialized) {
     return null; // You can add a loading screen here
   }
 

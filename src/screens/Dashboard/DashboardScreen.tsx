@@ -6,15 +6,22 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+// import { LinearGradient } from 'expo-linear-gradient';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
 import { useFirebaseFitness } from '../../context/FirebaseFitnessContext';
+import { useNativeStepCounter } from '../../hooks/useNativeStepCounter';
+
+const { width } = Dimensions.get('window');
 
 const DashboardScreen: React.FC = () => {
   const { user } = useFirebaseAuth();
   const { state, loadTodaysData, getDashboardData } = useFirebaseFitness();
   const [refreshing, setRefreshing] = React.useState(false);
+  const nativeStepCounter = useNativeStepCounter();
 
   useEffect(() => {
     if (user) {
@@ -32,8 +39,8 @@ const DashboardScreen: React.FC = () => {
 
   const dashboardData = getDashboardData();
 
-  const StatsCard = ({ title, value, unit, icon, color, progress }: any) => (
-    <View style={[styles.statCard, { borderLeftColor: color }]}>
+  const StatsCard = ({ title, value, unit, icon, cardColor, progress }: any) => (
+    <View style={[styles.statCard, { backgroundColor: cardColor }]}>
       <View style={styles.statHeader}>
         <View style={styles.statInfo}>
           <Text style={styles.statTitle}>{title}</Text>
@@ -41,7 +48,7 @@ const DashboardScreen: React.FC = () => {
             {value} <Text style={styles.statUnit}>{unit}</Text>
           </Text>
         </View>
-        <Ionicons name={icon} size={24} color={color} />
+        <Ionicons name={icon} size={28} color="rgba(255, 255, 255, 0.9)" />
       </View>
       {progress !== undefined && (
         <View style={styles.progressContainer}>
@@ -49,7 +56,7 @@ const DashboardScreen: React.FC = () => {
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(progress, 100)}%`, backgroundColor: color },
+                { width: `${Math.min(progress, 100)}%` },
               ]}
             />
           </View>
@@ -59,159 +66,189 @@ const DashboardScreen: React.FC = () => {
     </View>
   );
 
-  const QuickActionCard = ({ title, icon, color, onPress }: any) => (
-    <TouchableOpacity style={styles.quickActionCard} onPress={onPress}>
-      <Ionicons name={icon} size={32} color={color} />
-      <Text style={styles.quickActionText}>{title}</Text>
+  const QuickActionCard = ({ title, icon, cardColor, onPress }: any) => (
+    <TouchableOpacity onPress={onPress}>
+      <View style={[styles.quickActionCard, { backgroundColor: cardColor }]}>
+        <Ionicons name={icon} size={32} color="rgba(255, 255, 255, 0.9)" />
+        <Text style={styles.quickActionText}>{title}</Text>
+      </View>
     </TouchableOpacity>
   );
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <View style={styles.header}>
-        <Text style={styles.greeting}>Good Morning!</Text>
-        <Text style={styles.userName}>{user?.name}</Text>
-      </View>
-
-      <View style={styles.statsContainer}>
-        <StatsCard
-          title="Steps"
-          value={dashboardData.steps?.steps || 0}
-          unit={`/ ${state.goals.dailySteps}`}
-          icon="walk"
-          color="#FF6B6B"
-          progress={((dashboardData.steps?.steps || 0) / state.goals.dailySteps) * 100}
-        />
-
-        <StatsCard
-          title="Water"
-          value={dashboardData.water?.amount || 0}
-          unit={`ml / ${state.goals.dailyWater}ml`}
-          icon="water"
-          color="#4ECDC4"
-          progress={((dashboardData.water?.amount || 0) / state.goals.dailyWater) * 100}
-        />
-
-        <StatsCard
-          title="Calories"
-          value={dashboardData.diet?.totalCalories || 0}
-          unit={`/ ${state.goals.dailyCalories}`}
-          icon="restaurant"
-          color="#45B7D1"
-          progress={((dashboardData.diet?.totalCalories || 0) / state.goals.dailyCalories) * 100}
-        />
-
-        <StatsCard
-          title="Weight"
-          value={dashboardData.weight?.weight || 0}
-          unit="kg"
-          icon="scale"
-          color="#96CEB4"
-        />
-      </View>
-
-      <View style={styles.quickActionsContainer}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.quickActionsGrid}>
-          <QuickActionCard
-            title="Log Steps"
-            icon="walk"
-            color="#FF6B6B"
-            onPress={() => {}}
-          />
-          <QuickActionCard
-            title="Add Water"
-            icon="water"
-            color="#4ECDC4"
-            onPress={() => {}}
-          />
-          <QuickActionCard
-            title="Log Meal"
-            icon="restaurant"
-            color="#45B7D1"
-            onPress={() => {}}
-          />
-          <QuickActionCard
-            title="New Workout"
-            icon="fitness"
-            color="#FFA07A"
-            onPress={() => {}}
-          />
-        </View>
-      </View>
-
-      <View style={styles.recentWorkoutsContainer}>
-        <Text style={styles.sectionTitle}>Recent Workouts</Text>
-        {dashboardData.recentWorkouts.length > 0 ? (
-          dashboardData.recentWorkouts.map((workout) => (
-            <View key={workout.id} style={styles.workoutCard}>
-              <View style={styles.workoutHeader}>
-                <Text style={styles.workoutName}>{workout.name}</Text>
-                <Text style={styles.workoutDate}>{workout.date}</Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
+      <View style={styles.backgroundGradient}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              tintColor="#fff"
+            />
+          }
+        >
+          <View style={styles.header}>
+            <View style={styles.headerTop}>
+              <View>
+                <Text style={styles.greeting}>Good Morning!</Text>
+                <Text style={styles.userName}>{user?.name}</Text>
               </View>
-              <View style={styles.workoutStats}>
-                <Text style={styles.workoutStat}>
-                  {workout.duration} min • {workout.calories} cal
-                </Text>
-                <Text style={styles.workoutType}>{workout.type}</Text>
-              </View>
+              <TouchableOpacity style={styles.profileButton}>
+                <Ionicons name="person-circle" size={40} color="rgba(255, 255, 255, 0.8)" />
+              </TouchableOpacity>
             </View>
-          ))
-        ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="fitness-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyStateText}>No workouts yet</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Start your fitness journey today!
-            </Text>
           </View>
-        )}
+
+          <View style={styles.statsContainer}>
+            <StatsCard
+              title="Steps"
+              value={nativeStepCounter.steps || 0}
+              unit={`/ ${state.goals.dailySteps}`}
+              icon="walk"
+              cardColor="#FF6B6B"
+              progress={((nativeStepCounter.steps || 0) / state.goals.dailySteps) * 100}
+            />
+
+            <StatsCard
+              title="Water"
+              value={dashboardData.water?.amount || 0}
+              unit={`ml / ${state.goals.dailyWater}ml`}
+              icon="water"
+              cardColor="#4ECDC4"
+              progress={((dashboardData.water?.amount || 0) / state.goals.dailyWater) * 100}
+            />
+
+            <StatsCard
+              title="Calories"
+              value={dashboardData.diet?.totalCalories || 0}
+              unit={`/ ${state.goals.dailyCalories}`}
+              icon="restaurant"
+              cardColor="#45B7D1"
+              progress={((dashboardData.diet?.totalCalories || 0) / state.goals.dailyCalories) * 100}
+            />
+
+            <StatsCard
+              title="Weight"
+              value={dashboardData.weight?.weight || 0}
+              unit="kg"
+              icon="scale"
+              cardColor="#96CEB4"
+            />
+          </View>
+
+          <View style={styles.quickActionsContainer}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.quickActionsGrid}>
+              <QuickActionCard
+                title="Log Steps"
+                icon="walk"
+                cardColor="#FF6B6B"
+                onPress={() => {}}
+              />
+              <QuickActionCard
+                title="Add Water"
+                icon="water"
+                cardColor="#4ECDC4"
+                onPress={() => {}}
+              />
+              <QuickActionCard
+                title="Log Meal"
+                icon="restaurant"
+                cardColor="#45B7D1"
+                onPress={() => {}}
+              />
+              <QuickActionCard
+                title="New Workout"
+                icon="fitness"
+                cardColor="#FFA07A"
+                onPress={() => {}}
+              />
+            </View>
+          </View>
+
+          <View style={styles.recentWorkoutsContainer}>
+            <Text style={styles.sectionTitle}>Recent Activities</Text>
+            {dashboardData.recentWorkouts.length > 0 ? (
+              dashboardData.recentWorkouts.map((workout) => (
+                <View key={workout.id} style={styles.workoutCard}>
+                  <View style={styles.workoutHeader}>
+                    <Text style={styles.workoutName}>{workout.name}</Text>
+                    <Text style={styles.workoutDate}>{workout.date}</Text>
+                  </View>
+                  <View style={styles.workoutStats}>
+                    <Text style={styles.workoutStat}>
+                      {workout.duration} min • {workout.calories} cal
+                    </Text>
+                    <Text style={styles.workoutType}>{workout.type}</Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <Ionicons name="fitness-outline" size={48} color="rgba(255, 255, 255, 0.3)" />
+                <Text style={styles.emptyStateText}>No workouts yet</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Start your fitness journey today!
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a2e',
+  },
+  backgroundGradient: {
+    flex: 1,
+    backgroundColor: '#1a1a2e',
   },
   header: {
-    backgroundColor: '#007AFF',
-    padding: 20,
     paddingTop: 60,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   greeting: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '500',
   },
   userName: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: 'white',
     marginTop: 4,
   },
+  profileButton: {
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 5,
+  },
   statsContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
   },
   statCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderLeftWidth: 4,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   statHeader: {
     flexDirection: 'row',
@@ -223,47 +260,50 @@ const styles = StyleSheet.create({
   },
   statTitle: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 4,
+    fontWeight: '500',
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: 'white',
   },
   statUnit: {
     fontSize: 16,
-    fontWeight: 'normal',
-    color: '#666',
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 16,
   },
   progressBar: {
     flex: 1,
-    height: 8,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 3,
     marginRight: 12,
   },
   progressFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   progressText: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
     fontWeight: '600',
   },
   quickActionsContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: 'white',
     marginBottom: 16,
   },
   quickActionsGrid: {
@@ -272,38 +312,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   quickActionCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    width: '48%',
+    borderRadius: 16,
+    padding: 20,
+    width: (width - 50) / 2,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
   },
   quickActionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: 'white',
     marginTop: 8,
     textAlign: 'center',
   },
   recentWorkoutsContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   workoutCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   workoutHeader: {
     flexDirection: 'row',
@@ -314,11 +351,11 @@ const styles = StyleSheet.create({
   workoutName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: 'white',
   },
   workoutDate: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.6)',
   },
   workoutStats: {
     flexDirection: 'row',
@@ -327,11 +364,11 @@ const styles = StyleSheet.create({
   },
   workoutStat: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   workoutType: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#4ECDC4',
     fontWeight: '600',
     textTransform: 'capitalize',
   },
@@ -342,12 +379,12 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 16,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: 'rgba(255, 255, 255, 0.5)',
     marginTop: 8,
     textAlign: 'center',
   },

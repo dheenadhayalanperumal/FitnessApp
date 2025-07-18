@@ -95,6 +95,7 @@ export const FirebaseAuthProvider: React.FC<FirebaseAuthProviderProps> = ({ chil
       );
       
       dispatch({ type: 'SET_USER', payload: user });
+      dispatch({ type: 'SET_LOADING', payload: false });
     } catch (error: any) {
       console.log('login error:', error);
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -113,6 +114,7 @@ export const FirebaseAuthProvider: React.FC<FirebaseAuthProviderProps> = ({ chil
       );
       
       dispatch({ type: 'SET_USER', payload: user });
+      dispatch({ type: 'SET_LOADING', payload: false });
     } catch (error: any) {
       dispatch({ type: 'SET_LOADING', payload: false });
       throw error;
